@@ -12,12 +12,13 @@ export default class TicketTypeRequest {
       throw new TypeError(`type must be ${this.#Type.slice(0, -1).join(', ')}, or ${this.#Type.slice(-1)}`);
     }
 
-    if (!Number.isInteger(noOfTickets)) {
-      throw new TypeError('noOfTickets must be an integer');
+    if (!Number.isInteger(noOfTickets) || noOfTickets <= 0) {
+       throw new TypeError('noOfTickets must be a postive integer');
     }
 
     this.#type = type;
     this.#noOfTickets = noOfTickets;
+    Object.freeze(this);
   }
 
   getNoOfTickets() {
