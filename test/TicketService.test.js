@@ -124,7 +124,6 @@ describe("TicketService", () => {
 
         describe("errors", () => {
 
-            //throw error if missing an argument
             it("should throw an error if the first and/or second arguments are missing", () => {
                 expect(() => ticketService.purchaseTickets()).toThrow(InvalidPurchaseException);
                 expect(() => ticketService.purchaseTickets(1)).toThrow(InvalidPurchaseException);
