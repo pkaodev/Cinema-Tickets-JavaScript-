@@ -1,7 +1,10 @@
 # Cinema Tickets (JavaScript)
 This is my submission for the cinema tickets coding exercise.
 
-To see the code working install the dependencies and run the tests from the root directory with commands `npm install` and `npm test`.
+To see the code working install the dependencies and run the tests from the root directory with the command:
+```
+npm i && npm t
+```
 
 You will need **node version 16.15.1 or higher** installed.
 
