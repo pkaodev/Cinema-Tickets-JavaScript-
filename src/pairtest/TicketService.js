@@ -5,18 +5,21 @@ import TicketPaymentService from '../thirdparty/paymentgateway/TicketPaymentServ
 import SeatReservationService from '../thirdparty/seatbooking/SeatReservationService.js';
 import defaultTicketServicePolicy from './defaultTicketServicePolicy.js';
 
+/** Represents a ticket service. */
 export default class TicketService {
   #ticketPaymentService;
   #seatReservationService;
 
   #maximumTickets;
 
-  // #ticketTypes;
-  // #ticketPrices;
-  // #seatAllocations;
-
   #ticketTypes;
 
+  /**
+   * Creates a TicketService instance.
+   * @param {ticketPaymentService} ticketPaymentService - Instance of 3rd party payment service.
+   * @param {seatReservationService} seatReservationService - Instance of 3rd party seat reservation service.
+   * @param {ticketServicePolicy} [ticketServicePolicy] - Optional ticket service policy object.  The default policy will be used if not provided.
+   */
   constructor(ticketPaymentService, seatReservationService, ticketServicePolicy = defaultTicketServicePolicy) {
     this.#validateTicketServiceSetup(ticketPaymentService, seatReservationService, ticketServicePolicy);
 
@@ -25,38 +28,39 @@ export default class TicketService {
 
     this.#maximumTickets = ticketServicePolicy.maximumTickets;
 
-    // this.#ticketTypes = Object.keys(ticketServicePolicy.ticketTypes);
-    // this.#ticketPrices = Object.values(ticketServicePolicy.ticketTypes).map((ticketType) => ticketType.price);
-    // this.#seatAllocations = Object.values(ticketServicePolicy.ticketTypes).map((ticketType) => ticketType.seatAllocation);
-
     this.#ticketTypes = ticketServicePolicy.ticketTypes;
 
     Object.freeze(this);
   };
 
+  /**
+   * Purchases ticket(s).
+   * @param {number} accountId - Account ID of the customer.
+   * @param  {...TicketTypeRequest} ticketTypeRequests - Request(s) for ticket(s) to be purchased.
+   * @returns {{text: string, tickets: number, price: number, seats: number}} - text: confirmation message, tickets: number of tickets purchased, price: total cost of purchase in pounds, seats: number of seats reserved.
+   */
   purchaseTickets(accountId, ...ticketTypeRequests) {
     this.#validatePurchaseRequest(accountId, ...ticketTypeRequests);
 
     const totalNoOfTickets = this.#calculateTotalNoOfTickets(ticketTypeRequests);
 
-    const totalAmountToPay = this.#calculateTotalAmountToPay(ticketTypeRequests);
-    const costInPounds = totalAmountToPay / 100;
+    const totalCostInPounds = this.#calculateTotalCostInPounds(ticketTypeRequests);
 
     const totalSeatsToReserve = this.#calculateTotalSeatsToReserve(ticketTypeRequests);
 
+    this.#makeRequestToPaymentService(accountId, totalCostInPounds);
 
-    this.#contactPaymentService(accountId, costInPounds);
+    this.#makeRequestToSeatReservationService(accountId, totalSeatsToReserve);
 
-    this.#contactSeatReservationService(accountId, totalSeatsToReserve);
-      
     return {
-      text: `You have purchased ${totalNoOfTickets} ticket${totalNoOfTickets > 1 ? 's' : ''} for a total of £${totalAmountToPay / 100} and reserved ${totalSeatsToReserve} seat${totalSeatsToReserve > 1 ? 's' : ''}.`,
+      text: `You have purchased ${totalNoOfTickets} ticket${totalNoOfTickets > 1 ? 's' : ''} for a total of £${totalCostInPounds / 100} and reserved ${totalSeatsToReserve} seat${totalSeatsToReserve > 1 ? 's' : ''}.`,
       tickets: totalNoOfTickets,
-      price: costInPounds,
+      price: totalCostInPounds,
       seats: totalSeatsToReserve
     };
   };
 
+  /** Throws an error if TicketService is not correctly instantiated. */
   #validateTicketServiceSetup(ticketPaymentService, seatReservationService, ticketServicePolicy) {
     if (!(ticketPaymentService instanceof TicketPaymentService)) {
       throw new InvalidTicketServiceSetupException('TicketPaymentService instance must be provided');
@@ -84,6 +88,7 @@ export default class TicketService {
     });
   };
 
+  /** Throws an error if the purchase request is invalid. */
   #validatePurchaseRequest(accountId, ...ticketTypeRequests) {
     if (arguments.length < 2) {
       throw new InvalidPurchaseException('accountId and at least one ticketTypeRequest must be provided');
@@ -112,37 +117,31 @@ export default class TicketService {
     return ticketTypeRequests.reduce((total, ticketTypeRequest) => total + ticketTypeRequest.getNoOfTickets(), 0);
   };
 
-  #calculateTotalAmountToPay(ticketTypeRequests) {
-    // return ticketTypeRequests.reduce((total, ticketTypeRequest) => {
-    //   const ticketTypeIndex = this.#ticketTypes.findIndex((ticketType) => ticketType === ticketTypeRequest.getTicketType());
-    //   return total + this.#ticketPrices[ticketTypeIndex] * ticketTypeRequest.getNoOfTickets();
-    // }, 0);
-
-    return ticketTypeRequests.reduce((total, ticketTypeRequest) => {
+  #calculateTotalCostInPounds(ticketTypeRequests) {
+    const costInPence = ticketTypeRequests.reduce((total, ticketTypeRequest) => {
       return total + this.#ticketTypes[ticketTypeRequest.getTicketType()].price * ticketTypeRequest.getNoOfTickets();
     }, 0);
+
+    return costInPence / 100;
   };
 
   #calculateTotalSeatsToReserve(ticketTypeRequests) {
-    // return ticketTypeRequests.reduce((total, ticketTypeRequest) => {
-    //   const ticketTypeIndex = this.#ticketTypes.findIndex((ticketType) => ticketType === ticketTypeRequest.getTicketType());
-    //   return total + this.#seatAllocations[ticketTypeIndex] * ticketTypeRequest.getNoOfTickets();
-    // }, 0);
-
     return ticketTypeRequests.reduce((total, ticketTypeRequest) => {
       return total + this.#ticketTypes[ticketTypeRequest.getTicketType()].seatAllocation * ticketTypeRequest.getNoOfTickets();
     }, 0);
   };
 
-  #contactPaymentService(accountId, totalAmountToPay) {
+  /** Makes a request to the 3rd party payment service. */
+  #makeRequestToPaymentService(accountId, totalAmountToPayInPounds) {
     try {
-      this.#ticketPaymentService.makePayment(accountId, totalAmountToPay);
+      this.#ticketPaymentService.makePayment(accountId, totalAmountToPayInPounds);
     } catch (error) {
       throw new InvalidPurchaseException(`payment failed with details: ${error}`);
     };
   };
 
-  #contactSeatReservationService(accountId, totalSeatsToReserve) {
+  /** Makes a request to the 3rd party seat reservation service. */
+  #makeRequestToSeatReservationService(accountId, totalSeatsToReserve) {
     try {
       this.#seatReservationService.reserveSeat(accountId, totalSeatsToReserve);
     } catch (error) {

@@ -10,6 +10,7 @@ describe("Exceptions", () => {
             const exception = new InvalidPurchaseException();
             expect(exception).toBeInstanceOf(Error);
         });
+
         it("should have a name of InvalidPurchaseException", () => {
             const exception = new InvalidPurchaseException();
             expect(exception.name).toBe("InvalidPurchaseException");
@@ -22,6 +23,7 @@ describe("Exceptions", () => {
             const exception = new InvalidTicketServiceSetupException();
             expect(exception).toBeInstanceOf(Error);
         });
+        
         it("should have a name of InvalidTicketServiceSetupException", () => {
             const exception = new InvalidTicketServiceSetupException();
             expect(exception.name).toBe("InvalidTicketServiceSetupException");

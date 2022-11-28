@@ -1,33 +1,34 @@
 /**
- * Immutable Object.
+ * Represents a request for single/multiple tickets of a specific ticket type.
+ * @typedef {object} ticketTypeRequest
  */
-
 export default class TicketTypeRequest {
-  #type;
+	#type;
 
-  #noOfTickets;
+	#noOfTickets;
 
-  constructor(type, noOfTickets) {
-    if (!this.#Type.includes(type)) {
-      throw new TypeError(`type must be ${this.#Type.slice(0, -1).join(', ')}, or ${this.#Type.slice(-1)}`);
-    }
+	constructor(type, noOfTickets) {
+		if (!this.#allowedTypes.includes(type)) {
+			throw new TypeError(`type must be ${this.#allowedTypes.slice(0, -1).join(', ')}, or ${this.#allowedTypes.slice(-1)}`);
+		}
 
-    if (!Number.isInteger(noOfTickets) || noOfTickets <= 0) {
-       throw new TypeError('noOfTickets must be a postive integer');
-    }
+		if (!Number.isInteger(noOfTickets) || noOfTickets <= 0) {
+			throw new TypeError('noOfTickets must be a postive integer');
+		}
 
-    this.#type = type;
-    this.#noOfTickets = noOfTickets;
-    Object.freeze(this);
-  }
+		this.#type = type;
+		this.#noOfTickets = noOfTickets;
 
-  getNoOfTickets() {
-    return this.#noOfTickets;
-  }
+		Object.freeze(this);
+	}
 
-  getTicketType() {
-    return this.#type;
-  }
+	getNoOfTickets() {
+		return this.#noOfTickets;
+	}
 
-  #Type = ['ADULT', 'CHILD', 'INFANT'];
+	getTicketType() {
+		return this.#type;
+	}
+
+	#allowedTypes = ['ADULT', 'CHILD', 'INFANT'];
 }
