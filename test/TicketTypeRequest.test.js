@@ -43,7 +43,7 @@ describe("TicketTypeRequest", () => {
     it("should throw an error if the second argument is not a positive integer", () => {
         const notPositiveIntegers = ['string', 0, -1, 1.1];
         notPositiveIntegers.forEach(notPositiveInteger => {
-            expect(() => new TicketTypeRequest('ADULT', (notPositiveInteger)).toThrow(TypeError));
+            expect(() => new TicketTypeRequest('ADULT', (notPositiveInteger))).toThrow(TypeError);
         });
     });
 });

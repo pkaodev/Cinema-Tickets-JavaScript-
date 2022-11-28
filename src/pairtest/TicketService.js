@@ -113,10 +113,12 @@ export default class TicketService {
     };
   };
 
+  /** Returns the total number of tickets to be purchased. */
   #calculateTotalNoOfTickets(ticketTypeRequests) {
     return ticketTypeRequests.reduce((total, ticketTypeRequest) => total + ticketTypeRequest.getNoOfTickets(), 0);
   };
 
+  /** Returns the total cost of purchase in pounds. */
   #calculateTotalCostInPounds(ticketTypeRequests) {
     const costInPence = ticketTypeRequests.reduce((total, ticketTypeRequest) => {
       return total + this.#ticketTypes[ticketTypeRequest.getTicketType()].price * ticketTypeRequest.getNoOfTickets();
@@ -125,6 +127,7 @@ export default class TicketService {
     return costInPence / 100;
   };
 
+  /** Returns the total number of seats to reserve. */
   #calculateTotalSeatsToReserve(ticketTypeRequests) {
     return ticketTypeRequests.reduce((total, ticketTypeRequest) => {
       return total + this.#ticketTypes[ticketTypeRequest.getTicketType()].seatAllocation * ticketTypeRequest.getNoOfTickets();

@@ -124,6 +124,14 @@ describe("TicketService", () => {
 
         describe("errors", () => {
 
+            //throw error if missing an argument
+            it("should throw an error if the first and/or second arguments are missing", () => {
+                expect(() => ticketService.purchaseTickets()).toThrow(InvalidPurchaseException);
+                expect(() => ticketService.purchaseTickets(1)).toThrow(InvalidPurchaseException);
+                expect(() => ticketService.purchaseTickets(adultTicketRequest)).toThrow(InvalidPurchaseException);
+            });
+
+
             it("should throw an error if the first accountId argument is not a positive integer", () => {
                 const notPositiveIntegers = ['1', 0, -1, 1.1];
                 notPositiveIntegers.forEach(notPositiveInteger => {
