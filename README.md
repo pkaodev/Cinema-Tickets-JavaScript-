@@ -61,8 +61,11 @@ Has been interpreted literally as any number of infants can sit on an adult's la
 
 <br />
 
-## Future improvements
-- Currently failed purchase attepts using the `purchaseTickets` method simply throw an exception.  It might be better to handle those errors differently and have the method still return a response object.  The response object could have a `success` property which is set to `true` or `false` depending on the outcome, and the `text` property could be set to the exception's error message if the purchase failed.
-- Static type checking (e.g. TypeScript) to ensure correct types are passed in and returned, and reduce the number of validation checks/tests which currently have to be made.
-- It would be beneficial to have a single source of truth for allowed ticket types.  Currently if  more ticket types were to be added, this would have to be done in 2 places, the ticket service policy and the TicketTypeRequest class.  
- - Expand the ticket service policy object to include conditions like "1 adult is needed for each infant".  This would allow us to more easily make checks in the `#validatePurchaseRequest` method.
+# Future improvements
+- Failed purchase attempts using the `purchaseTickets` method simply throw an exception.  It might be better to have the method catch those exceptions and return a response object.  The response object could have a `success` property which is set to `true` or `false` depending on the outcome, and the `text` property could be set to the exception's error message if the purchase failed.
+- The way ticket requests are validated and then the values for tickets/prices/seatsd are calculated is computationally inefficient (using many loops).  This could be improved by using fewer loops containing more logic in each, although this would reduce the separation of concerns and potentiatlly make the code more difficult to read.
+- We could extract all of the business requirements (not just maximum tickets, ticket types, prices, and seats allocated) into the policy object instead of having them written in the `#validatePurchaseRequest` method itself.  This would allow for more flexibility in the future if the requirements were to change (especially if we want to use subclasses to implement policies differently).
+- It might be beneficial to have a single source of truth for allowed ticket types.  Currently if a new ticket type was added to the TicketTypeRequest class but not to the policy object and a ticket purchase request was made with that ticket type, the `#validatePurchaseRequest` method would not throw an exception, but a TypeError would occur when the `#calculateTotalCostInPounds` method tried to access the price of the new ticket type.  Alternatively we could have an additional check in the `#validatePurchaseRequest` method to ensure that the ticket type is allowed by the ticket system.
+- Static type checking (e.g. TypeScript) to ensure correct types are passed in and returned, and reduce the number of validation checks/tests which are currently made.
+- If prices which are not full pounds are to be used in the future this could be accounted for by dealing with prices in pennies (up until values in pounds are needed) or alter how certain error checks are being handled.
+- Complete JSDoc documentation.

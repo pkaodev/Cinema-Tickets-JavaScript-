@@ -15,7 +15,7 @@ export default class TicketService {
   #ticketTypes;
 
   /**
-   * Creates a TicketService instance.
+   * Creates a TicketService instance which is connected to particular payment- and seat reservation services, and has a particular ticket service policy.
    * @param {ticketPaymentService} ticketPaymentService - Instance of 3rd party payment service.
    * @param {seatReservationService} seatReservationService - Instance of 3rd party seat reservation service.
    * @param {ticketServicePolicy} [ticketServicePolicy] - Optional ticket service policy object.  The default policy will be used if not provided.
